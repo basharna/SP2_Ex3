@@ -1,4 +1,5 @@
 #include "Vertex.hpp"
+#include "Edge.hpp"
 
 Vertex::Vertex(int id)
 {
@@ -6,7 +7,7 @@ Vertex::Vertex(int id)
     this->building = nullptr;
 }
 
-int Vertex::getId()
+int Vertex::getId() const
 {
     return this->id;
 }
@@ -31,18 +32,33 @@ vector<Tile *> Vertex::getTiles()
     return tileList;
 }
 
-bool Vertex::getBuilding()
+Building *Vertex::getBuilding()
 {
     return this->building;
 }
 
-void Vertex::setBuilding(Building *building)
+bool Vertex::hasBuilding(Player *player)
 {
-    if (building->getType() == BuildingType::SETTLEMENT || building->getType() == BuildingType::CITY)
+    if (this->building == nullptr)
+    {
+        return false;
+    }
+    return this->building->getOwner() == player;
+}
+
+bool Vertex::hasBuilding()
+{
+    return this->building != nullptr;
+}
+
+void Vertex::addBuilding(Building *building)
+{
+    if (building->getType() == BuildingType::SETTLEMENT || building->getType() == BuildingType::CITY || building->getType() == BuildingType::STARTING_SETTLEMENT)
     {
         this->building = building;
     }
 }
+
 
 void Vertex::addEdge(Edge *edge)
 {
@@ -58,4 +74,33 @@ void Vertex::addTile(Tile *tile)
     {
         this->tiles.insert(tile);
     }
+}
+
+ostream &operator<<(ostream &os, const Vertex &vertex)
+{
+    os << "Vertex: " << vertex.id << " ";
+    for (auto &edge : vertex.edges)
+    {
+        os << *edge << " ";
+    }
+    return os;
+}
+
+vector<Vertex *> Vertex::getAdjacentVertices()
+{
+    vector<Vertex *> adjacentVertices;
+    for (auto &edge : this->edges)
+    {
+        Vertex *v1 = edge->getVertex1();
+        Vertex *v2 = edge->getVertex2();
+        if (v1->getId() == this->id)
+        {
+            adjacentVertices.push_back(v2);
+        }
+        else
+        {
+            adjacentVertices.push_back(v1);
+        }
+    }
+    return adjacentVertices;
 }

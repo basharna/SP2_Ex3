@@ -5,6 +5,7 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <iostream>
 using namespace std;
 
 class Edge;
@@ -16,17 +17,25 @@ public:
     Vertex(int id);
 
     // Getters
-    int getId();
+    int getId() const;
     vector<Edge *> getEdges();
     vector<Tile *> getTiles();
-    bool getBuilding();
+    Building *getBuilding();
+    bool hasBuilding(Player *player);
+    bool hasBuilding();
+
+    vector<Vertex *> getAdjacentVertices();
 
     // Setters
-    void setBuilding(Building *building);
+    void addBuilding(Building *building);
 
     // Adders
     void addEdge(Edge *edge);
     void addTile(Tile *tile);
+
+
+    // operator <<
+    friend ostream &operator<<(ostream &os, const Vertex &vertex);
 
 private:
     int id;
