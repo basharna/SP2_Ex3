@@ -1,30 +1,27 @@
-# Compiler and flags
 CXX = g++
 CXXFLAGS = -Wall -Wextra -std=c++11 
 
-# Source and object files
 SOURCES = $(wildcard *.cpp)
-OBJECTS = $(SOURCES:.cpp=.o)
+OBJECTS = $(filter-out Test.o Demo.o, $(SOURCES:.cpp=.o))
 DEPS = $(SOURCES:.cpp=.d)
 
-# Executable
-EXEC = game
-
 # Targets
-all: $(EXEC)
+all: demo test
 
-$(EXEC): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $^ -o $@
+demo: Demo.o $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $^ -o demo
+
+test: Test.o $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $^ -o test
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Valgrind check
-valgrind: $(EXEC)
-	valgrind --leak-check=full ./$(EXEC)
+valgrind: demo
+	valgrind --leak-check=full ./demo
 
 # Clean
 clean:
-	rm -f $(OBJECTS) $(DEPS) $(EXEC)
+	rm -f $(OBJECTS) $(DEPS) demo test
 
 .PHONY: all valgrind clean

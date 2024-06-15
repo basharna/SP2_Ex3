@@ -5,7 +5,8 @@
     "unordered_set": "cpp",
     "new": "cpp",
     "iosfwd": "cpp",
-    "iostream": "cpp"
+    "iostream": "cpp",
+    "ostream": "cpp"
   },
   "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
     "clang-analyzer-security.insecureAPI.rand"

@@ -30,6 +30,7 @@ public:
 
     static string cardToString(Card card);
 
+
 private:
     CardDeck();
     vector<Card> deck;

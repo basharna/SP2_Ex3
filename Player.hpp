@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <random>
+#include <chrono>
 #include "Resources.hpp"
 #include "Building.hpp"
 #include "Vertex.hpp"
@@ -17,6 +18,7 @@ class Player
 {
 public:
     Player(string name);
+    ~Player();
 
     // Getters
     string getName();
@@ -35,6 +37,8 @@ public:
     void setTurn(bool turn);
     void setBoard(Board *board);
     void setGame(Catan *game);
+    void addDevelopmentCard(Card card);
+    void setHasRolled(bool hasRolled);
 
     // Building
     bool placeSettlement(int vertexID);
@@ -42,13 +46,16 @@ public:
     bool placeCity(int vertexID);
 
     // Game
-    void endTurn();
+    bool endTurn();
     int rollDice();
-    void trade(Player *player, Resource give, Resource receive, int amount);
-    
+    bool trade(Player *player, Resource give, int give_amount, Resource receive, int recv_amount);
+
+    void addResource(Resource resource, int amount);
+    void removeResource(Resource resource, int amount);
+
     // card actions
     void buyDevelopmentCard();
-    void useMonopolyCard();
+    bool useMonopolyCard(Resource resource);
     void useYearOfPlentyCard();
     void useRoadBuildingCard();
     void useVictoryPointCard();
@@ -75,8 +82,6 @@ private:
 
     // Helper functions
     bool canAfford(BuildingCost cost);
-    void addResource(Resource resource, int amount);
-    void removeResource(Resource resource, int amount);
     void deductCost(BuildingCost cost);
     void addVictoryPoints(int amount);
     void removeVictoryPoints(int amount);

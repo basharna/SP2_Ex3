@@ -1,11 +1,13 @@
 #include "Vertex.hpp"
 #include "Edge.hpp"
+#include "Tile.hpp" // Add this line to include the header file for the 'Tile' class
 
 Vertex::Vertex(int id)
 {
     this->id = id;
     this->building = nullptr;
 }
+
 
 int Vertex::getId() const
 {
@@ -62,7 +64,7 @@ void Vertex::addBuilding(Building *building)
 
 void Vertex::addEdge(Edge *edge)
 {
-    if (find(this->edges.begin(), this->edges.end(), edge) == this->edges.end())
+    if (this->edges.find(edge) == this->edges.end())
     {
         this->edges.insert(edge);
     }
@@ -70,7 +72,7 @@ void Vertex::addEdge(Edge *edge)
 
 void Vertex::addTile(Tile *tile)
 {
-    if (find(this->tiles.begin(), this->tiles.end(), tile) == this->tiles.end())
+    if (this->tiles.find(tile) == this->tiles.end())
     {
         this->tiles.insert(tile);
     }

@@ -2,6 +2,7 @@
 
 void Board::initVertices()
 {
+    vertices.clear();
     // Create the vertices
     for (int i = 0; i < 54; i++)
     {
@@ -11,6 +12,7 @@ void Board::initVertices()
 
 void Board::initEdges()
 {
+    edges.clear();
     for (int i = 1; i <= 5; i += 2)
     {
         addEdge(i - 1, i);
@@ -77,6 +79,7 @@ void Board::initEdges()
 
 void Board::initTiles()
 {
+    tiles.clear();
     addTile(0, Resource::ORE, 10, {0, 1, 2, 8, 9, 10});
     addTile(1, Resource::WOOL, 2, {2, 3, 4, 10, 11, 12});
     addTile(2, Resource::WOOD, 9, {4, 5, 6, 12, 13, 14});
@@ -100,6 +103,7 @@ void Board::initTiles()
 
 Board::Board()
 {
+    buildings.clear();
     initVertices();
     initEdges();
     initTiles();
@@ -122,16 +126,7 @@ Board::~Board()
         delete tile.second;
     }
 
-    for (auto const &building : buildings)
-    {
-        delete building;
-    }
-}
-
-Board &Board::getInstance()
-{
-    static Board instance;
-    return instance;
+    buildings.clear();
 }
 
 void Board::addVertex(int id)
@@ -140,12 +135,17 @@ void Board::addVertex(int id)
     {
         vertices[id] = new Vertex(id);
     }
+    else
+    {
+        cerr << "Vertex " << id << " already exists." << endl;
+    }
 }
 
 void Board::addEdge(int vertex1, int vertex2)
 {
     if (vertices.find(vertex1) == vertices.end() || vertices.find(vertex2) == vertices.end())
     {
+        cerr << "One or both vertices not found: " << vertex1 << ", " << vertex2 << endl;
         return;
     }
     Vertex *v1 = vertices[vertex1];
@@ -193,8 +193,23 @@ bool Board::canBuildRoad(Building *building)
 
     Vertex *v1 = vertices[vertexIds[0]];
     Vertex *v2 = vertices[vertexIds[1]];
+    if (!v1 || !v2)
+    {
+        cerr << "Null vertex pointer: v1=" << v1 << ", v2=" << v2 << endl;
+        return false;
+    }
     Edge *edge = getEdge(v1, v2);
+    if (!edge)
+    {
+        cerr << "Null edge pointer" << endl;
+        return false;
+    }
     Player *player = building->getOwner();
+    if (!player)
+    {
+        cerr << "Null player pointer" << endl;
+        return false;
+    }
 
     // check if there is a road at the edge
     if (edge->hasBuilding())
@@ -234,7 +249,6 @@ bool Board::buildRoad(Building *building)
 {
     if (!canBuildRoad(building))
     {
-        cout << "Cannot build road" << endl;
         return false;
     }
 
@@ -258,7 +272,14 @@ bool Board::canBuildSettlement(Building *building)
         return false;
     }
 
-    Vertex *vertex = vertices[vertexIds[0]];
+    int vertexId = vertexIds[0];
+    if (this->vertices.find(vertexId) == this->vertices.end())
+    {
+        cout << "Vertex not found" << endl;
+        return false;
+    }
+
+    Vertex *vertex = this->vertices[vertexId];
     Player *player = building->getOwner();
 
     // check if there is a building at the vertex
@@ -298,7 +319,8 @@ bool Board::buildSettlement(Building *building)
     }
 
     vector<int> vertexIds = building->getVertexIds();
-    Vertex *v = vertices[vertexIds[0]];
+    int vertexId = vertexIds[0];
+    Vertex *v = vertices[vertexId];
 
     v->addBuilding(building);
     this->buildings.insert(building);
@@ -403,4 +425,3 @@ ostream &operator<<(ostream &os, const Board &board)
 
     return os;
 }
-

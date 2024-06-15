@@ -5,7 +5,7 @@
 
 using namespace std;
 
-enum class Resource {
+enum Resource {
     WOOD,
     BRICK,
     WOOL,

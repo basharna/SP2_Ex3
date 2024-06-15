@@ -11,9 +11,10 @@
 class Board
 {
 public:
-    static Board &getInstance();
+    Board();
+    ~Board();
 
-    // Building 
+    // Building
     bool buildSettlement(Building *building);
     bool buildRoad(Building *building);
     bool buildCity(Building *building);
@@ -27,11 +28,7 @@ public:
     // operator <<
     friend ostream &operator<<(ostream &os, const Board &board);
 
-    // Destructor
-    ~Board();
-
 private:
-    Board();
     unordered_map<int, Vertex *> vertices;
     unordered_set<Edge *> edges;
     unordered_map<int, Tile *> tiles;

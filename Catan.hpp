@@ -12,7 +12,7 @@ using namespace std;
 class Catan
 {
 public:
-    static Catan &getInstance(Player *player1, Player *player2, Player *player3);
+    Catan(Player *player1, Player *player2, Player *player3);
 
     // Getters
     Board *getBoard();
@@ -21,18 +21,19 @@ public:
     Player *getPlayer2();
     Player *getPlayer3();
     vector<Player *> getPlayers();
+    int getCurrentPlayerTurn();
 
     void chooseStartingPlayer();
+    void setStartingPlayer(int i);
 
     // turn logic
     void updateTurn(Player *player);
-    
+
     void printWinner();
 
+    void simulateDiceRoll(Player *p, int number);
 
 private:
-    Catan(Player *player1, Player *player2, Player *player3);
-
     Board *board;
     Player *player1;
     Player *player2;
@@ -43,7 +44,6 @@ private:
 
     // check if game is over
     void checkWinner();
-
 };
 
 #endif // CATAN_HPP

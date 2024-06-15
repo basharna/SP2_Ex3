@@ -15,4 +15,5 @@ string to_string(Resource r){
         case Resource::DESERT:
             return "Desert";
     }
+    return "Invalid Resource";
 }

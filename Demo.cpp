@@ -10,7 +10,7 @@ int main()
     Player player2("Player 2");
     Player player3("Player 3");
 
-    Catan catan = Catan::getInstance(&player1, &player2, &player3);
+    Catan catan = Catan(&player1, &player2, &player3);
     catan.chooseStartingPlayer();
 
     player1.placeRoad(19, 9);
@@ -32,7 +32,6 @@ int main()
     player3.placeSettlement(16);
 
     player1.rollDice();
-    player1.buyDevelopmentCard();
     player1.endTurn();
 
     player2.rollDice();
@@ -44,11 +43,12 @@ int main()
     player3.endTurn();
 
     player1.rollDice();
-    player1.useMonopolyCard();
+    player1.buyDevelopmentCard();
+    player1.useMonopolyCard(Resource::BRICK);
     player1.endTurn();
 
     player2.rollDice();
-    player2.trade(&player1, Resource::BRICK, Resource::ORE, 1);
+    player2.trade(&player1, Resource::BRICK,1, Resource::ORE, 1);
     player2.endTurn();
 
     player1.printPlayerStats();

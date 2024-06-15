@@ -10,12 +10,15 @@ Building::Building(BuildingType type, Player *owner)
     {
     case BuildingType::SETTLEMENT:
         this->cost = SETTLEMENT_COST;
+        this->startingBuilding = false;
         break;
     case BuildingType::CITY:
         this->cost = CITY_COST;
+        this->startingBuilding = false;
         break;
     case BuildingType::ROAD:
         this->cost = ROAD_COST;
+        this->startingBuilding = false;
         break;
     case BuildingType::STARTING_SETTLEMENT:
         this->cost = {0, 0, 0, 0, 0};
@@ -47,11 +50,14 @@ string Building::getTypeString() const
     }
 }
 
-string Building::getPositionString(){
-    if(this->type == BuildingType::ROAD || this->type == BuildingType::STARTING_ROAD){
+string Building::getPositionString()
+{
+    if (this->type == BuildingType::ROAD || this->type == BuildingType::STARTING_ROAD)
+    {
         return "(" + to_string(this->vertices[0]) + "," + to_string(this->vertices[1]) + ")";
     }
-    else if (this->type == BuildingType::SETTLEMENT || this->type == BuildingType::CITY || this->type == BuildingType::STARTING_SETTLEMENT){
+    else if (this->type == BuildingType::SETTLEMENT || this->type == BuildingType::CITY || this->type == BuildingType::STARTING_SETTLEMENT)
+    {
         return "(" + to_string(this->vertices[0]) + ")";
     }
     return "Unknown";

@@ -1,14 +1,8 @@
 #include "Catan.hpp"
 
-Catan &Catan::getInstance(Player *player1, Player *player2, Player *player3)
-{
-    static Catan instance(player1, player2, player3);
-    return instance;
-}
-
 Catan::Catan(Player *player1, Player *player2, Player *player3) : player1(player1), player2(player2), player3(player3), cardDeck(CardDeck::getInstance())
 {
-    this->board = &Board::getInstance();
+    this->board = new Board();
 
     // set player ids
     this->player1->setPlayerID(1);
@@ -24,7 +18,6 @@ Catan::Catan(Player *player1, Player *player2, Player *player3) : player1(player
     this->player1->setGame(this);
     this->player2->setGame(this);
     this->player3->setGame(this);
-
 
     // set turn
     this->player1->setTurn(true);
@@ -63,6 +56,11 @@ Player *Catan::getPlayer3()
 vector<Player *> Catan::getPlayers()
 {
     return {this->player1, this->player2, this->player3};
+}
+
+int Catan::getCurrentPlayerTurn()
+{
+    return this->currentPlayerTurn;
 }
 
 void Catan::checkWinner()
@@ -126,22 +124,88 @@ void Catan::printWinner()
     }
 }
 
-void Catan::chooseStartingPlayer(){
+void Catan::chooseStartingPlayer()
+{
     int random = rand() % 3 + 1;
-    if(random == 1){
+    if (random == 1)
+    {
         this->player1->setTurn(true);
         this->player2->setTurn(false);
         this->player3->setTurn(false);
         currentPlayerTurn = 1;
-    } else if(random == 2){
+    }
+    else if (random == 2)
+    {
         this->player1->setTurn(false);
         this->player2->setTurn(true);
         this->player3->setTurn(false);
         currentPlayerTurn = 2;
-    } else {
+    }
+    else
+    {
         this->player1->setTurn(false);
         this->player2->setTurn(false);
         this->player3->setTurn(true);
         currentPlayerTurn = 3;
+    }
+}
+
+void Catan::setStartingPlayer(int id)
+{
+    if (id == 1)
+    {
+        this->player1->setTurn(true);
+        this->player2->setTurn(false);
+        this->player3->setTurn(false);
+        this->currentPlayerTurn = 1;
+    }
+    else if (id == 2)
+    {
+        this->player1->setTurn(false);
+        this->player2->setTurn(true);
+        this->player3->setTurn(false);
+        this->currentPlayerTurn = 2;
+    }
+    else
+    {
+        this->player1->setTurn(false);
+        this->player2->setTurn(false);
+        this->player3->setTurn(true);
+        this->currentPlayerTurn = 3;
+    }
+}
+
+void Catan::simulateDiceRoll(Player *p, int number)
+{
+
+    p->setHasRolled(true);
+
+    // Iterate through all tiles on the board
+    for (int i = 0; i <= 18; i++)
+    {
+        Tile *tile = this->board->getTile(i);
+        if (tile == nullptr)
+        {
+            cout << "Tile not found" << endl;
+            exit(1);
+        }
+        if (tile->getToken() == number)
+        {
+            for (auto &v : tile->getVertices())
+            {
+                if (v->hasBuilding())
+                {
+                    Building *building = v->getBuilding();
+                    if (building->getType() == BuildingType::SETTLEMENT || building->getType() == BuildingType::STARTING_SETTLEMENT)
+                    {
+                        building->getOwner()->addResource(tile->getResource(), 1);
+                    }
+                    else if (building->getType() == BuildingType::CITY)
+                    {
+                        building->getOwner()->addResource(tile->getResource(), 2);
+                    }
+                }
+            }
+        }
     }
 }

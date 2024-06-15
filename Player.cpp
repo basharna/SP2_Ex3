@@ -2,17 +2,22 @@
 #include "Board.hpp"
 #include "Catan.hpp"
 
-mt19937 Player::rng(std::chrono::system_clock::now().time_since_epoch().count());
+mt19937 Player::rng(chrono::system_clock::now().time_since_epoch().count());
 
-Player::Player(string name) : name(name), victoryPoints(0)
+Player::Player(string name)
+    : name(name),
+      board(nullptr),
+      game(nullptr),
+      victoryPoints(0),
+      playerID(-1),
+      turn(false),
+      hasRolled(false)
 {
     this->resources[Resource::WOOD] = 0;
     this->resources[Resource::BRICK] = 0;
     this->resources[Resource::WOOL] = 0;
     this->resources[Resource::WHEAT] = 0;
     this->resources[Resource::ORE] = 0;
-
-    this->turn = false;
 
     for (int i = 0; i < 3; i++)
     {
@@ -34,6 +39,39 @@ Player::Player(string name) : name(name), victoryPoints(0)
         this->startingSettlements.insert(new Building(BuildingType::STARTING_SETTLEMENT, this));
         this->startingRoads.insert(new Building(BuildingType::STARTING_ROAD, this));
     }
+}
+
+Player::~Player()
+{
+    for (auto building : unbuiltSettlements)
+    {
+        delete building;
+    }
+    unbuiltSettlements.clear();
+
+    for (auto building : unbuiltCities)
+    {
+        delete building;
+    }
+    unbuiltCities.clear();
+
+    for (auto building : unbuiltRoads)
+    {
+        delete building;
+    }
+    unbuiltRoads.clear();
+
+    for (auto building : startingSettlements)
+    {
+        delete building;
+    }
+    startingSettlements.clear();
+
+    for (auto building : startingRoads)
+    {
+        delete building;
+    }
+    startingRoads.clear();
 }
 
 void Player::setPlayerID(int id)
@@ -121,6 +159,7 @@ Building *Player::getUnbuiltRoad()
         building = *this->unbuiltRoads.begin();
         if (!canAfford(building->getCost()))
         {
+            cout << "player cant afford Road" << endl;
             return nullptr;
         }
         this->unbuiltRoads.erase(building);
@@ -178,7 +217,7 @@ bool Player::placeRoad(int vertexID1, int vertexID2)
     Building *road = getUnbuiltRoad();
     if (road == nullptr)
     {
-        cout << "Cannot build road" << endl;
+        cout << "Cannot build road: " << vertexID1 << "," << vertexID2 << endl;
         return false;
     }
     road->setVertexIds({vertexID1, vertexID2});
@@ -186,7 +225,7 @@ bool Player::placeRoad(int vertexID1, int vertexID2)
     // check if player can build road on board
     if (!board->buildRoad(road))
     {
-        cout << "Cannot build road" << endl;
+        cout << "Cannot build road: " << vertexID1 << "," << vertexID2 << endl;
         return false;
     }
     road->setBuilt(true);
@@ -222,7 +261,7 @@ bool Player::placeSettlement(int vertexID)
     // check if player can build settlement on board
     if (!board->buildSettlement(settlement))
     {
-        cout << "Cannot build settlement" << endl;
+        cout << "Cannot build settlement: " << vertexID << endl;
         return false;
     }
     settlement->setBuilt(true);
@@ -288,15 +327,17 @@ bool Player::placeCity(int vertexID)
     return true;
 }
 
-void Player::endTurn()
+bool Player::endTurn()
 {
     if (!this->turn)
     {
-        return;
+        return false;
     }
     this->turn = false;
     this->hasRolled = false;
     this->game->updateTurn(this);
+
+    return true;
 }
 
 int Player::rollDice()
@@ -330,33 +371,34 @@ int Player::rollDice()
     return sum;
 }
 
-void Player::trade(Player *player, Resource give, Resource receive, int amount)
+bool Player::trade(Player *player, Resource give, int give_amount, Resource receive, int recv_amount)
 {
     if (!this->turn)
     {
         cout << "Not player's turn" << endl;
-        return;
+        return false;
     }
 
-    if (this->getResourceCount(give) < amount)
+    if (this->getResourceCount(give) < give_amount)
     {
         cout << "Not enough resources to trade" << endl;
-        return;
+        return false;
     }
 
-    if (player->getResourceCount(receive) < amount)
+    if (player->getResourceCount(receive) < recv_amount)
     {
         cout << "Player does not have enough resources to trade" << endl;
-        return;
+        return false;
     }
 
-    this->removeResource(give, amount);
-    this->addResource(receive, amount);
+    this->removeResource(give, give_amount);
+    this->addResource(receive, recv_amount);
 
-    player->removeResource(receive, amount);
-    player->addResource(give, amount);
+    player->removeResource(receive, recv_amount);
+    player->addResource(give, give_amount);
 
-    cout << this->getName() << " traded " << amount << " " << to_string(give) << " for " << amount << " " << to_string(receive) << " with " << player->getName() << endl;
+    cout << this->name << " traded " << give_amount << " " << to_string(give) << " for " << recv_amount << " " << to_string(receive) << " with " << player->getName() << endl;
+    return true;
 }
 
 void Player::addVictoryPoints(int amount)
@@ -511,51 +553,18 @@ void Player::buyDevelopmentCard()
     }
 }
 
-void Player::useMonopolyCard()
+bool Player::useMonopolyCard(Resource resource)
 {
     if (!this->turn)
     {
         cout << "Not player's turn" << endl;
-        return;
+        return false;
     }
 
     if (this->developmentCards.find(Card(Card::MONOPOLY)) == this->developmentCards.end())
     {
         cout << "Player does not have monopoly card" << endl;
-        return;
-    }
-
-    cout << "Choose a resource to monopolize" << endl;
-    cout << "1. Wood" << endl;
-    cout << "2. Brick" << endl;
-    cout << "3. Wool" << endl;
-    cout << "4. Wheat" << endl;
-    cout << "5. Ore" << endl;
-
-    int choice;
-    cin >> choice;
-
-    Resource resource;
-    switch (choice)
-    {
-    case 1:
-        resource = Resource::WOOD;
-        break;
-    case 2:
-        resource = Resource::BRICK;
-        break;
-    case 3:
-        resource = Resource::WOOL;
-        break;
-    case 4:
-        resource = Resource::WHEAT;
-        break;
-    case 5:
-        resource = Resource::ORE;
-        break;
-    default:
-        cout << "Invalid choice" << endl;
-        return;
+        return false;
     }
 
     for (auto &p : this->game->getPlayers())
@@ -565,12 +574,15 @@ void Player::useMonopolyCard()
             continue;
         }
         int amount = p->getResourceCount(resource);
+        cout << p->getName() << " had " << amount << " " << to_string(resource) << endl;
         p->removeResource(resource, amount);
         this->addResource(resource, amount);
     }
 
     // remove used card
     this->developmentCards.erase(Card(Card::MONOPOLY));
+    cout << this->getName() << " used a Monopoly card" << endl;
+    return true;
 }
 
 void Player::useYearOfPlentyCard()
@@ -703,4 +715,14 @@ void Player::useVictoryPointCard()
     }
 
     addVictoryPoints(1);
+}
+
+void Player::addDevelopmentCard(Card card)
+{
+    this->developmentCards.insert(card);
+}
+
+void Player::setHasRolled(bool hasRolled)
+{
+    this->hasRolled = hasRolled;
 }
